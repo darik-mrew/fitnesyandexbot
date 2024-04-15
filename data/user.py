@@ -1,5 +1,6 @@
 import sqlalchemy
 from .db_session import SqlAlchemyBase
+from .nutrition_program import NutritionProgram
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 import pickle
@@ -17,4 +18,4 @@ class User(SqlAlchemyBase, SerializerMixin):
 
     nutrition_program_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("nutrition_programs.id"))
-    nutrition_program = orm.relationship('Nutrition_program')
+    nutrition_program = orm.relationship('NutritionProgram')

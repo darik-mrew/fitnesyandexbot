@@ -4,7 +4,7 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy import orm
 
 
-class Nutrition_program(SqlAlchemyBase, SerializerMixin):
+class NutritionProgram(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'nutrition_programs'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
@@ -15,4 +15,4 @@ class Nutrition_program(SqlAlchemyBase, SerializerMixin):
     calories = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     default_nutrition_program = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
 
-    user_id = orm.relationship("User", back_populates='nutrition_program')
+    user = orm.relationship("User", back_populates='nutrition_program')
