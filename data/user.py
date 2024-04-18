@@ -14,7 +14,9 @@ class User(SqlAlchemyBase, SerializerMixin):
     height = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     weight = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     best_sport_results = sqlalchemy.Column(sqlalchemy.PickleType, default=pickle.dumps({}), nullable=True)
-    last_date_pfcc_controlled = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
+    last_date_cpfc_controlled = sqlalchemy.Column(sqlalchemy.DateTime, nullable=True)
+    sport = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    items = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     nutrition_program_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("nutrition_programs.id"))
