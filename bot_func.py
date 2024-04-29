@@ -9,6 +9,7 @@ import pickle
 import sqlalchemy
 import datetime
 import logging
+import working_with_maps
 
 
 logging.basicConfig(filename='log/bot_log.log', format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s',
@@ -46,13 +47,6 @@ def create_nutrition_program(user_id, title, short_description, cpfc):
     db_sess.commit()
 
 
-def add_sport_to_user_data(user_id, chosen_sport):
-    db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.id == user_id).first()
-    user.chosen_sport = chosen_sport
-    db_sess.commit()
-
-
 def add_helper_to_message(text):
     text += '\n\nОтправте сообщение /commands или /команды, чтобы увидеть список всех возможных команд бота!'
     return text
@@ -61,13 +55,8 @@ def add_helper_to_message(text):
 @bot.message_handler(commands=['start', 'старт'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    tennis_button = types.KeyboardButton("Теннис")
-    volleyball_button = types.KeyboardButton("Волейбол")
-    basketball_button = types.KeyboardButton("Баскетбол")
-    football_button = types.KeyboardButton("Футбол")
-    fitness_button = types.KeyboardButton("Фитнес")
-    swimming_button = types.KeyboardButton("Плавание")
-    markup.add(tennis_button, volleyball_button, basketball_button, football_button, fitness_button, swimming_button)
+    button = types.KeyboardButton("Начнем!")
+    markup.add(button)
 
     user_name = message.from_user.username
     bot.send_message(message.chat.id,
@@ -75,7 +64,6 @@ def send_welcome(message):
                      reply_markup=markup)
 
 
-# не забывать добавлять сюда новые команды
 @bot.message_handler(commands=['команды', 'commands'])
 def send_commands(message):
     possible_commands = {'/commands или /команды': 'выводит список список всех команд бота.',
@@ -120,10 +108,35 @@ def send_commands(message):
                              'показывает список ваших программ питания(номер программы в списке - её id в '
                              'безе данных).',
                          '/sh_cur_nut_pr или /показать текущую программу питания':
-                             'показывает выбранную вами программу питания.'}
+                             'показывает выбранную вами программу питания.',
+                         '/nearby_gyms или /спортзалы рядом':
+                             'отправляет карту с вашим местоположением и местоположением нескольких ближайших к вам'
+                             ' спортзалов(чем точнее вы укажете свой адрес, тем точнее составится карта).'
+                             '\nФормат сообщения: <сама команда><ваш адрес>\nПример: /nearby_gyms город'
+                             ' Лиски, улица Коминтерна, дом 104.'}
 
     text = '\n'.join([f'{key} - {possible_commands[key]}' for key in possible_commands.keys()])
     bot.send_message(message.chat.id, text)
+
+
+@bot.message_handler(commands=['nearby_gyms', 'спортзалы рядом'])
+def send_map(message):
+    try:
+        user_address = message.text.replace('/nearby_gyms', '').replace('/спортзалы рядом', '').strip()
+        user_latitude, user_longitude = working_with_maps.get_coordinates(user_address)
+        gyms = working_with_maps.get_nearby_gyms(user_latitude, user_longitude)
+
+        map = working_with_maps.draw_map(user_latitude, user_longitude, gyms)
+        text = 'Красная метка - ваше местоположение, синие - местоположения спортзалов.'
+    except Exception as e:
+        logging.error(f'id:{message.chat.id} message:{message.text} type:{type(e)} error:{e}')
+
+        map = open('data/сильный котик.png', 'rb').read()
+        text = ('Возникла неизвестная оошибка или вы указали некорректный адрес,'
+                ' приносим свои извиненения.\nПосмотрите пока на этого сильного и крутого котика!')
+    finally:
+        bot.send_photo(message.chat.id, map)
+        bot.send_message(message.chat.id, add_helper_to_message(text))
 
 
 @bot.message_handler(commands=['sh_sp_res', 'спортивные результаты'])
@@ -435,23 +448,6 @@ def show_current_nutrition_program(message):
     bot.send_message(message.chat.id, add_helper_to_message(text))
 
 
-@bot.message_handler(func=lambda message: message.text in ['теннис', 'волейбол', 'баскетбол', 'футбол', 'фитнес', 'плавание'])
-def handle_sport_buttons(message):
-    chosen_sport = message.text
-    if chosen_sport == 'теннис':
-        bot.send_message(message.chat.id, 'Мячи для тенниса', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/tennisnye-myachi-11278/")))
-    elif chosen_sport == 'волейбол':
-        bot.send_message(message.chat.id, 'Мяч для волейбола', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/voleybolnye-myachi-11258/")))
-    elif chosen_sport == 'баскетбол':
-        bot.send_message(message.chat.id, 'Мяч для баскетбола', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/basketbolnye-myachi-11253/")))
-    elif chosen_sport == 'футбол':
-        bot.send_message(message.chat.id, 'Мяч для футбола', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/futbolnye-myachi-11277/")))
-    elif chosen_sport == 'фитнес':
-        bot.send_message(message.chat.id, 'Гантели для фитнеса', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/ganteli-11641/")))
-    elif chosen_sport == 'плавание':
-        bot.send_message(message.chat.id, 'Шапочки для плавания', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Купить", url="https://www.ozon.ru/category/shapochki-dlya-plavaniya-11184/")))
-
-
 @bot.message_handler(func=lambda message: True)
 def handle_button_click(message):
     if message.text == "Начнем!":
@@ -465,13 +461,6 @@ def handle_button_click(message):
 
         markup = types.ReplyKeyboardRemove()
         bot.reply_to(message, add_helper_to_message(text), reply_markup=markup)
-
-
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    user_id = message.chat.id
-    chosen_sport = message.text
-    add_sport_to_user_data(user_id, chosen_sport)
 
 
 db_session.global_init("db/data_base.db")
