@@ -115,7 +115,7 @@ def send_commands(message):
                              '\nФормат сообщения: <сама команда><ваш адрес>\nПример: /nearby_gyms город'
                              ' Лиски, улица Коминтерна, дом 104.'}
 
-    text = '\n'.join([f'{key} - {possible_commands[key]}' for key in possible_commands.keys()])
+    text = '\n\n'.join([f'{key} - {possible_commands[key]}' for key in possible_commands.keys()])
     bot.send_message(message.chat.id, text)
 
 
@@ -159,7 +159,7 @@ def send_all_sport_results(message):
 def write_sport_result(message):
     try:
         user_input = message.text.replace(
-            ('/write_result' if '/write_result' in message.text.lower() else '/записать результат'), '').strip().lower()
+            ('/wr_sp_res' if '/wr_sp_res' in message.text.lower() else '/записать результат'), '').strip().lower()
         user_input = user_input.replace('название:', '~~~~')
         user_input = user_input.replace('результат:', '~~~~')
         user_input = [i.strip() for i in user_input.split('~~~~') if i != '']
@@ -187,7 +187,7 @@ def write_sport_result(message):
 @bot.message_handler(commands=['del_sp_res', 'удалить результат'])
 def delete_sport_result(message):
     title = (message.text.replace(
-        ('/delete_result' if '/delete_result' in message.text.lower() else '/удалить результат'), '').strip().lower()
+        ('/del_sp_res' if '/del_sp_res' in message.text.lower() else '/удалить результат'), '').strip().lower()
                   .capitalize())
 
     db_sess = db_session.create_session()
@@ -220,7 +220,7 @@ def delete_all_sport_results(message):
 @bot.message_handler(commands=['wr_cpfc', 'записать кбжу'])
 def write_cpfc(message):
     try:
-        cpfc = (message.text.replace('/write_cpfc', '').replace('/записать кбжу', '').replace(', ', ',').strip().
+        cpfc = (message.text.replace('/wr_cpfc', '').replace('/записать кбжу', '').replace(', ', ',').strip().
                 split(','))
 
         db_sess = db_session.create_session()
@@ -297,8 +297,8 @@ def show_current_cpfc(message):
 @bot.message_handler(commands=['добавить свою программу питания', 'add_my_nut_pr'])
 def add_my_nutrition_program(message):
     try:
-        user_input = message.text.replace(('/add_my_nutrition_program' if '/add_my_nutrition_program' in
-                                                                          message.text.lower() else
+        user_input = message.text.replace(('/add_my_nut_pr' if '/add_my_nut_pr' in
+                                                               message.text.lower() else
                                            '/добавить свою программу питания'), '').strip().lower()
         user_input = user_input.replace('название:', '~~~~').replace('кбжу:', '~~~~').replace('описание:', '~~~~')
         title, cpfc, short_description = [i.capitalize().strip() for i in user_input.split('~~~~') if i != '']
@@ -318,7 +318,7 @@ def add_my_nutrition_program(message):
 @bot.message_handler(commands=['удалить программу питания', 'del_nut_pr'])
 def del_nutrition_program(message):
     try:
-        nutrition_program_id = int(int(message.text.replace('/delete_nutrition_program', '')
+        nutrition_program_id = int(int(message.text.replace('/del_nut_pr', '')
                                        .replace('/удалить программу питания', '')))
 
         db_sess = db_session.create_session()
@@ -350,7 +350,7 @@ def del_nutrition_program(message):
 @bot.message_handler(commands=['chs_nut_pr', 'выбрать программу питания'])
 def choose_nutrition_program(message):
     try:
-        nutrition_program_id = int(message.text.replace('/choose_nutrition_program', '')
+        nutrition_program_id = int(message.text.replace('/chs_nut_pr', '')
                                    .replace('/выбрать программу питания', ''))
 
         db_sess = db_session.create_session()
@@ -376,7 +376,7 @@ def choose_nutrition_program(message):
 @bot.message_handler(commands=['add_nut_pr_id', 'добавить программу питания по id'])
 def add_nutrition_program_by_id(message):
     try:
-        nutrition_program_id = int(message.text.replace('/add_nutrition_program_by_id', '')
+        nutrition_program_id = int(message.text.replace('/add_nut_pr_id', '')
                                    .replace('/добавить программу питания по id', ''))
 
         db_sess = db_session.create_session()
